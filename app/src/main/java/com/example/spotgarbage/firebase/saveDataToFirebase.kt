@@ -82,6 +82,7 @@ fun storeComplaints(userid: String, isGranted: Boolean, postId: String, db: Fire
             username.toString(), postId, address, imageUri, type, description, location, latitude, longitude, formattedDate, dayOfWeek, formattedTime,email.toString())
         db.collection("complaints").document(postId).set(complaint).addOnSuccessListener {
             Toast.makeText(context, "Complaint saved", Toast.LENGTH_SHORT).show()
+
             if(isGranted) {
                 showNotification(context,username)
             }
