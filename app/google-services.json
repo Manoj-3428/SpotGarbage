@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "214317280",
+    "firebase_url": "https://garabgedetector-default-rtdb.firebaseio.com",
+    "project_id": "garabgedetector",
+    "storage_bucket": "garabgedetector.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:214317280:android:7280baeed8eb9446a57885",
+        "android_client_info": {
+          "package_name": "com.example.spotgarbage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNu3JGg9GfvCwtyK8CZrs_Bw5XlhbrSw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
