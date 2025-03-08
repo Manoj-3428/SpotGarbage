@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,9 @@ fun MyPosts(navController: NavController, complaintViewModel: ComplaintViewModel
     val context = LocalContext.current
     val complaintList = complaintViewModel.complaintList
     val uid= FirebaseAuth.getInstance().currentUser?.uid
+    LaunchedEffect(Unit) {
+
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = true,
@@ -78,6 +82,16 @@ fun MyPosts(navController: NavController, complaintViewModel: ComplaintViewModel
                 )
                 Divider()
                 NavigationDrawerItem(
+                    label = { Text(text = "Home", color = primary_light) },
+                    icon = { Icon(painter = painterResource(id= R.drawable.home), contentDescription = "Delivery",tint = primary_light,modifier = Modifier.size(24.dp)) },
+                    selected = false,
+                    onClick = {
+                        coroutineScope.launch { drawerState.close() }
+                        navController.navigate("Home")
+                    }
+                )
+                Divider()
+                NavigationDrawerItem(
                     label = { Text(text = "My Posts", color = primary_light) },
                     icon = { Icon(painter = painterResource(id= R.drawable.mail), contentDescription = "Delivery",tint = primary_light,modifier = Modifier.size(24.dp)) },
                     selected = false,
@@ -103,9 +117,10 @@ fun MyPosts(navController: NavController, complaintViewModel: ComplaintViewModel
                     selected = false,
                     onClick = {
                         coroutineScope.launch { drawerState.close() }
-                        Toast.makeText(context, "Track complaint", Toast.LENGTH_SHORT).show()
+                        navController.navigate("TrackComplaint")
                     }
                 )
+                Divider()
                 NavigationDrawerItem(
                     label = { Text(text = "Logout", color = primary_light) },
                     icon = { Icon(painter = painterResource(id = R.drawable.logout), contentDescription = "Logout", tint = primary_light, modifier = Modifier.size(24.dp)) },
@@ -204,6 +219,15 @@ fun MyComplaintItem(complaint: Complaint,onclick:()->(Unit)) {
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(text = "Posted by: ${complaint.username}", fontSize = 14.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
                 Text(text = "${complaint.dayOfWeek}, ${complaint.formattedDate}, at ${complaint.formattedTime}", fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Status: ", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = complaint.status,
+                        color = if (complaint.status == "Pending") Color.Red else Color.Green,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
             }
         }
     }

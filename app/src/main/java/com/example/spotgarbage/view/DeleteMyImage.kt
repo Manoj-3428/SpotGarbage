@@ -1,5 +1,6 @@
 package com.example.spotgarbage.view
 
+import androidx.navigation.NavController
 import com.google.firebase.storage.FirebaseStorage
 
 fun DeleteMyImage(imageUri: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {

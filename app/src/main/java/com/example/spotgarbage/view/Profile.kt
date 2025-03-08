@@ -34,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -118,7 +119,7 @@ fun profile() {
                 OutlinedTextField(
                     value = name.value,
                     onValueChange = { name.value = it },
-                    label = { Text(text = "Name") },
+                    label = { Text(text = "Name", color = Color.Gray) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -140,7 +141,7 @@ fun profile() {
                 OutlinedTextField(
                     value = email.value,
                     onValueChange = { email.value = it },
-                    label = { Text(text = "Email") },
+                    label = { Text(text = "Email", color = Color.Gray) },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(R.drawable.mail),
@@ -162,7 +163,7 @@ fun profile() {
                 OutlinedTextField(
                     value = phone.value,
                     onValueChange = { phone.value = it },
-                    label = { Text(text = "Phone number") },
+                    label = { Text(text = "Phone number", color = Color.Gray) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Phone,
@@ -184,7 +185,7 @@ fun profile() {
                 OutlinedTextField(
                     value = address.value,
                     onValueChange = { address.value = it },
-                    label = { Text(text = "Current address") },
+                    label = { Text(text = "Current address", color = Color.Gray) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.LocationOn,

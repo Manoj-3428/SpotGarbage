@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.net.Uri
@@ -20,11 +22,16 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.LocalTime
 @RequiresApi(Build.VERSION_CODES.O)
-fun saveDataToFirebase(address: String, isGranted:Boolean,uri: Uri, context: Context, type: String, description: String, location: String, latitude: String, longitude: String,onComplete:()->Unit) {
+fun saveDataToFirebase(
+    detectionResult: String, address: String, isGranted: Boolean, uri: Uri, context: Context,
+    type: String, description: String, location: String, latitude: String, longitude: String,
+    onComplete: () -> Unit
+) {
     val currentDate = LocalDate.now()
     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
     val formattedDate = currentDate.format(formatter)
@@ -33,8 +40,8 @@ fun saveDataToFirebase(address: String, isGranted:Boolean,uri: Uri, context: Con
     val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
     val formattedTime = currentTime.format(timeFormatter)
     val userid = FirebaseAuth.getInstance().currentUser?.uid
-    var username=""
-    var email=""
+    var username = ""
+    var email = ""
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
 
@@ -42,35 +49,64 @@ fun saveDataToFirebase(address: String, isGranted:Boolean,uri: Uri, context: Con
         Log.e("FirebaseError", "User not authenticated")
         return
     }
-    db.collection("users").document(userid).get().addOnSuccessListener({document->
-        val profile=document.toObject(Profiles::class.java)
-        if(profile!=null){
-            username=profile.name
-            email=profile.email
+
+    db.collection("users").document(userid).get().addOnSuccessListener { document ->
+        val profile = document.toObject(Profiles::class.java)
+        if (profile != null) {
+            username = profile.name
+            email = profile.email
         }
-    })
+    }
 
     val postId = "${userid}_${System.currentTimeMillis()}"
     val storageReference = storage.reference.child("complaints_images/$postId.jpg")
 
-    Log.d("UploadDebug", "Starting file upload for postId: $postId")
+    Log.d("UploadDebug", "Starting image compression for postId: $postId")
 
-    storageReference.putFile(uri).addOnSuccessListener {
-        Log.d("UploadDebug", "File uploaded successfully")
-        storageReference.downloadUrl.addOnSuccessListener { downloadUrl ->
-            Log.d("UploadDebug", "Download URL received: ${downloadUrl.toString()}")
-            storeComplaints(userid,isGranted,postId, db, address, downloadUrl.toString(), context, type, description, location, latitude, longitude, formattedDate, dayOfWeek, formattedTime, username,email,onComplete)
+    // Compress the image before uploading
+    val compressedImageByteArray = compressImage(uri, context)
+
+    if (compressedImageByteArray != null) {
+        val uploadTask = storageReference.putBytes(compressedImageByteArray)
+
+        uploadTask.addOnSuccessListener {
+            Log.d("UploadDebug", "File uploaded successfully")
+            storageReference.downloadUrl.addOnSuccessListener { downloadUrl ->
+                Log.d("UploadDebug", "Download URL received: ${downloadUrl.toString()}")
+                storeComplaints(
+                    detectionResult, userid, isGranted, postId, db, address, downloadUrl.toString(),
+                    context, type, description, location, latitude, longitude, formattedDate,
+                    dayOfWeek, formattedTime, username, email, onComplete
+                )
+            }.addOnFailureListener {
+                Log.e("UploadError", "Failed to get download URL: ${it.message}")
+                onComplete()
+            }
         }.addOnFailureListener {
-            Log.e("UploadError", "Failed to get download URL: ${it.message}")
+            Log.e("UploadError", "File upload failed: ${it.message}")
             onComplete()
         }
-    }.addOnFailureListener {
-        Log.e("UploadError", "File upload failed: ${it.message}")
+    } else {
+        Log.e("CompressionError", "Image compression failed")
         onComplete()
     }
 }
 
-fun storeComplaints(userid: String, isGranted: Boolean, postId: String, db: FirebaseFirestore,
+fun compressImage(uri: Uri, context: Context): ByteArray? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+        outputStream.toByteArray()
+    } catch (e: Exception) {
+        Log.e("CompressionError", "Failed to compress image: ${e.message}")
+        null
+    }
+}
+
+
+fun storeComplaints(detectionResults: String, userid: String, isGranted: Boolean, postId: String, db: FirebaseFirestore,
                     address: String, imageUri: String, context:
                     Context, type: String, description: String, location: String,
                     latitude: String, longitude: String,
@@ -84,7 +120,7 @@ fun storeComplaints(userid: String, isGranted: Boolean, postId: String, db: Fire
             Toast.makeText(context, "Complaint saved", Toast.LENGTH_SHORT).show()
 
             if(isGranted) {
-                showNotification(context,username)
+                showNotification(detectionResults,context,username)
             }
             onComplete()
         }.addOnFailureListener {
@@ -94,7 +130,7 @@ fun storeComplaints(userid: String, isGranted: Boolean, postId: String, db: Fire
     }
 }
 @SuppressLint("MissingPermission", "NotificationPermission")
-fun showNotification(context: Context,username: String?) {
+fun showNotification(detectionResults: String,context: Context,username: String?) {
     val channelId = "simple_channel"
     val channelName = "simple"
     var channelDescription = "Nothing simple"
@@ -122,7 +158,7 @@ fun showNotification(context: Context,username: String?) {
         .setSmallIcon(R.drawable.app_icon)
         .setContentTitle("Thank You, $username! 🎉")
         .setContentText("Your complaint has been successfully recorded.")
-        .setStyle(NotificationCompat.BigTextStyle().bigText("Your complaint has been successfully recorded. Together, we’re making a cleaner world! 🌍💚"))
+        .setStyle(NotificationCompat.BigTextStyle().bigText("Your complaint has been successfully recorded. We got $detectionResults"))
         .setSound(soundUri)
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setDefaults(NotificationCompat.DEFAULT_ALL)

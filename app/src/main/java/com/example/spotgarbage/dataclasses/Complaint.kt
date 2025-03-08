@@ -20,9 +20,11 @@ data class Complaint(
     val formattedDate: String="",
     val dayOfWeek: String="",
     val formattedTime: String="",
-    val email:String=""
+    val email:String="",
+    val status:String="Pending",
+    val clearedOn:String=" "
 ): Parcelable{
-    constructor() : this("", Timestamp.now(),"", "", "", "", "","","","","","","","","")
+    constructor() : this("", Timestamp.now(),"", "", "", "", "","","","","","","","","","")
 
 
 }

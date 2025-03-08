@@ -83,6 +83,13 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation ("com.squareup.okhttp3:okhttp:4.9.1")
-    implementation("androidx.activity:activity-compose:1.7.2")// For image picker
+    implementation("androidx.activity:activity-compose:1.7.2")
     implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation ("androidx.compose.material3:material3:1.1.0")
+    implementation ("com.google.accompanist:accompanist-pager:0.31.1-alpha")
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.31.1-alpha")
+    implementation ("com.google.android.gms:play-services-base:18.5.0")
+    implementation ("com.google.android.gms:play-services-location:18.0.0")
+
+
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -31,13 +32,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.example.spotgarbage.R
 import com.example.spotgarbage.authentication.logout
 import com.example.spotgarbage.dataclasses.Complaint
 import com.example.spotgarbage.ui.theme.primary_dark
 import com.example.spotgarbage.ui.theme.primary_light
 import com.example.spotgarbage.viewmodel.ComplaintViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,13 +51,28 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+
+    val isRefreshing =complaintViewModel.isRefreshing.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
     var isLoading by remember { mutableStateOf(true) }
+    var auth= FirebaseAuth.getInstance()
+    val keyboardController= LocalSoftwareKeyboardController.current
+    var user=auth.currentUser
+    if(user==null){
+        Toast.makeText(context,"You are loged out from your account",Toast.LENGTH_LONG).show()
+        navController.navigate("login")
+    }
 
     LaunchedEffect(Unit) {
-        delay(4000) 
+        delay(1000)
         isLoading = false
+    }
+    LaunchedEffect(drawerState.isOpen) {
+        if (drawerState.isOpen) {
+            keyboardController?.hide()
+        }
     }
 
     val complaintList = complaintViewModel.complaintList
@@ -68,13 +88,15 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+
         gesturesEnabled = true,
         drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.width(250.dp)) {
+            ModalDrawerSheet(modifier = Modifier.width(250.dp).background(primary_dark)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
+                        .padding(top=0.dp)
                         .background(primary_dark),
                     contentAlignment = Alignment.Center
                 ) {
@@ -122,7 +144,7 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                     selected = false,
                     onClick = {
                         coroutineScope.launch { drawerState.close() }
-                        Toast.makeText(context, "Track complaint", Toast.LENGTH_SHORT).show()
+                        navController.navigate("TrackComplaint")
                     }
                 )
                 Divider()
@@ -153,7 +175,8 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                     ),
                     navigationIcon = {
                         IconButton(
-                            onClick = { coroutineScope.launch { drawerState.open() } },
+                            onClick = { coroutineScope.launch { drawerState.open()
+                                keyboardController?.hide()} },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)
                         ) {
                             Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
@@ -176,18 +199,27 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp),
+                        .padding(bottom = 10.dp, start = 10.dp, end = 10.dp),
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Search,
                         keyboardType = KeyboardType.Text
                     ),
                     keyboardActions = KeyboardActions(
-                        onSearch = { /* Handle search action */ }
-                    )
+                        onSearch = {
+                            keyboardController?.hide()
+                        }
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primary_light,
+                        unfocusedBorderColor = Color.Black,
+                        focusedLabelColor = primary_light,
+                        unfocusedLabelColor = Color.Gray,
+                        focusedLeadingIconColor = primary_light,
+                    ),
+
                 )
 
                 if (isLoading) {
-                    // Show progress indicator when data is loading
                     Column(modifier = Modifier.fillMaxSize(),
                         verticalArrangement =Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -195,14 +227,24 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                         Text("Complaints are fetching please wait")
                     }
                 } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    SwipeRefresh(
+                        state = rememberSwipeRefreshState(isRefreshing.value),
+                        onRefresh = {
+                            complaintViewModel.fetchComplaints() // Refresh the complaints list
+                        }
                     ) {
-                        items(filteredComplaints.size) { index ->
-                            ComplaintItem(filteredComplaints[index]) {
-                                navController.currentBackStackEntry?.savedStateHandle?.set("complaint", filteredComplaints[index])
-                                navController.navigate("DetailScreen")
+                        LazyColumn(
+                            contentPadding = PaddingValues(vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(filteredComplaints.size) { index ->
+                                ComplaintItem(filteredComplaints[index]) {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "complaint",
+                                        filteredComplaints[index]
+                                    )
+                                    navController.navigate("DetailScreen")
+                                }
                             }
                         }
                     }
@@ -240,6 +282,15 @@ fun ComplaintItem(complaint: Complaint, onclick: () -> Unit) {
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(text = "Posted by: ${complaint.username}", fontSize = 14.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
                 Text(text = "${complaint.dayOfWeek}, ${complaint.formattedDate}, at ${complaint.formattedTime}", fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Status: ", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = complaint.status,
+                        color = if (complaint.status == "Pending") Color.Red else Color.Green,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
             }
         }
     }

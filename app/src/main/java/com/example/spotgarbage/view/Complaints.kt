@@ -1,7 +1,12 @@
 package com.example.spotgarbage.view
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
@@ -17,6 +22,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -29,12 +36,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -42,6 +56,7 @@ import com.example.spotgarbage.R
 import com.example.spotgarbage.firebase.getAddressFromLocation
 import com.example.spotgarbage.firebase.saveDataToFirebase
 import com.example.spotgarbage.ui.theme.*
+import com.example.spotgarbage.viewmodel.GarbageDetectionViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -50,6 +65,7 @@ import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission", "UnusedMaterial3ScaffoldPaddingParameter")
@@ -73,15 +89,22 @@ fun addComplaint(navController: NavController) {
     val description = remember { mutableStateOf("") }
     val isGetting=remember { mutableStateOf(false) }
     val posted=remember { mutableStateOf(false) }
+    var detectionResult=""
     var tempFile = remember { File(context.cacheDir, "${System.currentTimeMillis()}.jpg") }
     val notificationPermission=rememberPermissionState(android.Manifest.permission.POST_NOTIFICATIONS)
+    val viewModel = GarbageDetectionViewModel()
+    val testUri = getImageUriFromDrawable(context, R.drawable.garbage)
+    val keyboardController= LocalSoftwareKeyboardController.current
+
     var tempUri = remember { FileProvider.getUriForFile(context, "${context.packageName}.provider", tempFile) }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
             imageUri.value = tempUri
         }
     }
-
+    val singleImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        imageUri.value=uri
+    }
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(top=30.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
@@ -91,18 +114,19 @@ fun addComplaint(navController: NavController) {
                 .height(250.dp)
                 .padding(start = 10.dp, end = 10.dp, top = 20.dp).border(2.dp,black)
                 .clickable {
-                    if(cameraPermission.status.isGranted){
-                        val newTempFile = File(context.cacheDir, "${System.currentTimeMillis()}.jpg")
-                        val newTempUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", newTempFile)
-                        tempFile.delete()
-
-                        tempFile = newTempFile
-                        tempUri = newTempUri
-                        cameraLauncher.launch(tempUri)
-                    }
-                    else{
-                        cameraPermission.launchPermissionRequest()
-                    }
+//                    if(cameraPermission.status.isGranted){
+//                        val newTempFile = File(context.cacheDir, "${System.currentTimeMillis()}.jpg")
+//                        val newTempUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", newTempFile)
+//                        tempFile.delete()
+//
+//                        tempFile = newTempFile
+//                        tempUri = newTempUri
+//                        cameraLauncher.launch(tempUri)
+//                    }
+//                    else{
+//                        cameraPermission.launchPermissionRequest()
+//                    }
+                    singleImageLauncher.launch("image/*")
                            },
             contentAlignment = Alignment.Center
         ) {
@@ -137,7 +161,13 @@ fun addComplaint(navController: NavController) {
                 value = selectedOption.value,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(text = "Select the type of waste") },
+                label = { Text(text = "Select the type of waste", color = Color.Gray) },
+
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                    }
+                ),
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "arrow") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -172,11 +202,18 @@ fun addComplaint(navController: NavController) {
         OutlinedTextField(
             value = address.value,
             onValueChange = { address.value = it },
+
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                }
+            ),
             modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
             label = { Text(
                 text = if (isGetting.value) "Fetching location..."
-                else "Click the icon for accurate current location",color = if (isGetting.value) green else secondary
-            ) },
+
+                else "Click the icon for accurate current location",color = if (isGetting.value) Color.Gray else secondary
+                ) },
             trailingIcon = {
                 if (isGetting.value) {
                     CircularProgressIndicator(
@@ -234,7 +271,7 @@ fun addComplaint(navController: NavController) {
         OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
-            label = { Text("Detail description about the complaint") },
+            label = { Text("Detail description about the complaint", color = Color.Gray) },
             modifier = Modifier.fillMaxWidth().height(150.dp).padding(10.dp),
             minLines = 3,
             colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -244,42 +281,148 @@ fun addComplaint(navController: NavController) {
                 unfocusedLabelColor = secondary,
                 focusedLeadingIconColor = secondary_light,
                 unfocusedLeadingIconColor = secondary
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                }
             )
         )
         val isLoading = remember { mutableStateOf(false) }
-        Button(
+        if(isGetting.value==false) {
+            Button(
 
-            onClick = {
-                coroutineScope.launch{
-                    imageUri.value?.let {
-                        isLoading.value=true
-                        notificationPermission.launchPermissionRequest()
-                        saveDataToFirebase(address.value,notificationPermission.status.isGranted,
-                            it, context, selectedOption.value,
-                            description.value, address.value, latitude.value.toString(),
-                            longitude.value.toString(), {
-                                isLoading.value = false
-                                navController.navigate("Home")
+                onClick = {
+                    coroutineScope.launch {
+                        imageUri.value?.let {
+                            isLoading.value = true
+                            notificationPermission.launchPermissionRequest()
+                            val filePath = getRealPathFromUri(context, imageUri.value!!)
+                            viewModel.detectGarbage(filePath, "A1AJq42TntoRtDVu5VBg") { result ->
+                                detectionResult = result
+                                if (detectionResult == "No garbage detected" || detectionResult.isEmpty()) {
+                                    Toast.makeText(
+                                        context,
+                                        "No garbage detected",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    isLoading.value = false
+                                    navController.navigate("addComplaint")
+                                    showSomeNotification(context, detectionResult, false)
+                                } else {
+                                    saveDataToFirebase(
+                                        detectionResult,
+                                        address.value,
+                                        notificationPermission.status.isGranted,
+                                        it,
+                                        context,
+                                        selectedOption.value,
+                                        description.value,
+                                        address.value,
+                                        latitude.value.toString(),
+                                        longitude.value.toString()
 
-                            })
-                    } ?: Toast.makeText(context, "Please select an image", Toast.LENGTH_SHORT).show()
-                }
-            },
-            modifier = Modifier.padding(top = 20.dp, end = 20.dp, start = 20.dp, bottom = 15.dp).fillMaxWidth().align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(2.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primary_light, contentColor = white)
-        ) {
-            if(isLoading.value){
-                CircularProgressIndicator(
-                    color = primary_dark,
-                    modifier = Modifier.size(24.dp)
+                                    ) {
+                                        isLoading.value = false
+                                        navController.navigate("Home")
+                                        Toast.makeText(
+                                            context,
+                                            "Detection Result is ${detectionResult}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+                        } ?: Toast.makeText(context, "Please select an image", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                },
+                enabled = !isLoading.value,
+                modifier = Modifier.padding(top = 20.dp, end = 20.dp, start = 20.dp, bottom = 15.dp)
+                    .fillMaxWidth().align(Alignment.CenterHorizontally),
+                shape = RoundedCornerShape(2.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primary_light,
+                    contentColor = white
                 )
-            }
-            else {
-                Text(text = "Post")
+            ) {
+                if (isLoading.value) {
 
+                    CircularProgressIndicator(
+                        color = primary_dark,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(text = "Post")
+
+                }
             }
         }
     }
+}
+fun getRealPathFromUri(context: Context, uri: Uri): String {
+    val file = File(context.cacheDir, "temp_image.jpg")
+    context.contentResolver.openInputStream(uri)?.use { input ->
+        file.outputStream().use { output ->
+            input.copyTo(output) // Copies the file
+        }
+    }
+    return file.absolutePath
+}
+@SuppressLint("MissingPermission", "NotificationPermission")
+fun showSomeNotification(context: Context,data: String?,status:Boolean) {
+    val channelId = "simple_channel"
+    val channelName = "simple"
+    var channelDescription = "Nothing simple"
+    val soundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    val audioAttributes = AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+        .build()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            channelId,
+            channelName,
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = channelDescription
+            setSound(soundUri, audioAttributes)
+        }
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
+
+    }
+    val content = if (!status) {
+        "We are unable to find the garbage in that image. Please try to take another capture"
+    } else {
+
+    }
+
+    val builder = NotificationCompat.Builder(context, channelId)
+        .setSmallIcon(R.drawable.app_icon)
+        .setContentTitle("No Garbage Detected!!")
+        .setStyle(NotificationCompat.BigTextStyle().bigText("We are unable to find the garbage in that image. Please try to take another capture"))
+        .setSound(soundUri)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+    NotificationManagerCompat.from(context).notify(1, builder.build())
 
 }
+fun getImageUriFromDrawable(context: Context, drawableId: Int): Uri? {
+    val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
+    val file = File(context.cacheDir, "test_image.png")
+
+    FileOutputStream(file).use { outputStream ->
+        val bitmap = (drawable as BitmapDrawable).bitmap
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+    }
+
+    return FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+}
+
