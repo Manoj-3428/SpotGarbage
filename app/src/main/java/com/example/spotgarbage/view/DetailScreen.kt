@@ -1,5 +1,6 @@
 package com.example.spotgarbage.view
 
+import android.R
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.spotgarbage.dataclasses.Complaint
+import com.example.spotgarbage.ui.theme.primary_dark
+import com.example.spotgarbage.ui.theme.primary_light
 import com.example.spotgarbage.ui.theme.secondary
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.coroutineScope
@@ -170,7 +173,7 @@ fun DetailScreen(complaint: Complaint?,navController: NavController) {
                         title = { Text("Delete Complaint?") },
                         text = { Text("Are you sure you want to delete this complaint? This action cannot be undone.") },
                         confirmButton = {
-                            TextButton(onClick = {
+                            TextButton(colors = ButtonDefaults.buttonColors(contentColor = primary_dark), onClick = {
                                 showDialog.value = false
                                 isDelete.value = true
                                 coroutineScope.launch {
@@ -194,7 +197,7 @@ fun DetailScreen(complaint: Complaint?,navController: NavController) {
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showDialog.value = false }) {
+                            TextButton(onClick = { showDialog.value = false },colors = ButtonDefaults.buttonColors(contentColor = primary_dark),) {
                                 Text("Cancel")
                             }
                         }

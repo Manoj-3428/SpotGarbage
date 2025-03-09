@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.spotgarbage.dataclasses.Complaint
+import com.example.spotgarbage.ui.theme.primary_dark
 import com.example.spotgarbage.ui.theme.secondary
 import com.example.spotgarbage.viewmodel.ComplaintViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -147,12 +148,13 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
             }
             if (showDialog.value) {
                 AlertDialog(
+                    modifier = Modifier.fillMaxWidth().padding(start = 25.dp, end = 25.dp),
                     onDismissRequest = { showDialog.value = false },
                     title = { Text("Confirm Update") },
                     text = { Text("Are you sure the garbage is collected?") },
 
                     confirmButton = {
-                        TextButton(onClick = {
+                        TextButton(colors = ButtonDefaults.buttonColors(contentColor = primary_dark),onClick = {
                             showDialog.value = false
                             isUpdate.value = true
                             coroutineScope.launch {
@@ -174,7 +176,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDialog.value = false }) {
+                        TextButton(onClick = { showDialog.value = false },colors = ButtonDefaults.buttonColors(contentColor = primary_dark)) {
                             Text("Cancel")
                         }
                     }
