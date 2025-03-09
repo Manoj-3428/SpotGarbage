@@ -68,6 +68,7 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
     LaunchedEffect(Unit) {
         delay(1000)
         isLoading = false
+        complaintViewModel.fetchPosts()
     }
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {

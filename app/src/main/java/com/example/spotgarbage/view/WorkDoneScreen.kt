@@ -169,7 +169,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                                     }
                                 }
                             }
-                        }) {
+                        }, modifier = Modifier.padding(start = 10.dp,end=10.dp)) {
                             Text("Yes, Confirm")
                         }
                     },

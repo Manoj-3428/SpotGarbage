@@ -260,7 +260,7 @@ fun addComplaint(navController: NavController) {
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedLabelColor = secondary_light,
-                unfocusedLabelColor = secondary,
+                unfocusedLabelColor = Color.Gray,
                 focusedBorderColor = secondary_light,
                 unfocusedBorderColor = secondary,
                 focusedTrailingIconColor = secondary_light,
@@ -271,12 +271,12 @@ fun addComplaint(navController: NavController) {
         OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
-            label = { Text("Detail description about the complaint", color = Color.Gray) },
+            label = { Text("Detail description about the complaint") },
             modifier = Modifier.fillMaxWidth().height(150.dp).padding(10.dp),
             minLines = 3,
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = secondary_light,
-                unfocusedBorderColor = secondary,
+                unfocusedBorderColor = Color.Gray,
                 focusedLabelColor = secondary_light,
                 unfocusedLabelColor = secondary,
                 focusedLeadingIconColor = secondary_light,

@@ -45,10 +45,15 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"
                 />
+
+
             <meta-data
                 android:name="com.google.android.gms.version"
                 android:value="@integer/google_play_services_version"/>
         </provider>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyB_aHASb2o3Xr2L2gr-6wRu4Ki_dYoBmzA" />
     </application>
 
 </manifest>

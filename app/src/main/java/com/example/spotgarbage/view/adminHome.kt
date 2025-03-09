@@ -121,6 +121,16 @@ fun adminHome(navController: NavController, complaintViewModel: ComplaintViewMod
                 )
                 Divider()
                 NavigationDrawerItem(
+                    label = { Text(text = "Map View", color = primary_light) },
+                    icon = { Icon(painter = painterResource(id = R.drawable.pin), contentDescription = "Map View", tint = primary_light, modifier = Modifier.size(24.dp)) },
+                    selected = false,
+                    onClick = {
+                        coroutineScope.launch { drawerState.close() }
+                        navController.navigate("MapScreen")
+                    }
+                )
+                Divider()
+                NavigationDrawerItem(
                     label = { Text(text = "Logout", color = primary_light) },
                     icon = { Icon(painter = painterResource(id = R.drawable.logout), contentDescription = "Logout", tint = primary_light, modifier = Modifier.size(24.dp)) },
                     selected = false,

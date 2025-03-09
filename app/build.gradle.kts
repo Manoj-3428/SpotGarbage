@@ -90,6 +90,8 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.31.1-alpha")
     implementation ("com.google.android.gms:play-services-base:18.5.0")
     implementation ("com.google.android.gms:play-services-location:18.0.0")
+    implementation ("com.google.maps.android:maps-compose:2.11.2")
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
 
 
 }

@@ -30,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.example.spotgarbage.onboardingscreens.OnboardingScreen
+import com.example.spotgarbage.ui.MapsScreen
 import com.example.spotgarbage.view.TrackComplaints
 import kotlinx.coroutines.delay
 
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             startDestination = "Home"
                         }
                 } else {
-                    startDestination = "onBoarding" // Ensure onboarding is shown
+                    startDestination = "onBoarding"
                 }
             }
 
@@ -93,6 +94,9 @@ class MainActivity : ComponentActivity() {
                     composable("adminHome") { adminHome(navController, complaintViewModel) }
                     composable("onBoarding") {
                         OnboardingScreen(navController)
+                    }
+                    composable("MapScreen"){
+                        MapsScreen()
                     }
                 }
             }
