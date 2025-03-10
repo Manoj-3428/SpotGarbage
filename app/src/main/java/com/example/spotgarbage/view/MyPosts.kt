@@ -49,7 +49,7 @@ fun MyPosts(navController: NavController, complaintViewModel: ComplaintViewModel
     val complaintList = complaintViewModel.complaintList
     val uid= FirebaseAuth.getInstance().currentUser?.uid
     LaunchedEffect(Unit) {
-
+        complaintViewModel.fetchPosts()
     }
     ModalNavigationDrawer(
         drawerState = drawerState,

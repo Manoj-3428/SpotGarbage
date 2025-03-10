@@ -30,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.example.spotgarbage.onboardingscreens.OnboardingScreen
+import com.example.spotgarbage.sample.LottieAnimation
 import com.example.spotgarbage.ui.MapsScreen
 import com.example.spotgarbage.view.TrackComplaints
 import kotlinx.coroutines.delay
@@ -71,7 +72,7 @@ class MainActivity : ComponentActivity() {
                     composable("splash1") { splash1(navController) }
                     composable("splash2") { splash2(navController) }
                     composable("Home") { Home(navController, complaintViewModel) }
-                    composable("profile") { profile() }
+                    composable("profile") { profile(navController) }
                     composable("addComplaint") { addComplaint(navController) }
                     composable("DetailScreen") {
                         val complaint = navController.previousBackStackEntry?.savedStateHandle?.get<Complaint>("complaint")
@@ -97,6 +98,9 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("MapScreen"){
                         MapsScreen()
+                    }
+                    composable("LottieAnimation") {
+                        LottieAnimation()
                     }
                 }
             }

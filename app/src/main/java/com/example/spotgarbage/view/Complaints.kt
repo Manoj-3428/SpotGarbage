@@ -350,16 +350,10 @@ fun addComplaint(navController: NavController) {
                     contentColor = white
                 )
             ) {
-                if (isLoading.value) {
-
-                    CircularProgressIndicator(
-                        color = primary_dark,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Text(text = "Post")
-
-                }
+                Text(text="Post")
+            }
+            if(isLoading.value){
+                navController.navigate("LottieAnimation")
             }
         }
     }

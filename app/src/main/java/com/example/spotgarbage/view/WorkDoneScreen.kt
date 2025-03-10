@@ -138,12 +138,9 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                     showDialog.value = true
                 }
             ) {
-                if (isUpdate.value) {
-                    CircularProgressIndicator(color = Color.White)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Updating...")
-                } else {
-                    Text(text = "Task Completed")
+                Text(text="Garbage collected")
+                if(isUpdate.value){
+                    navController.navigate("LottieAnimation")
                 }
             }
             if (showDialog.value) {
@@ -154,7 +151,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                     text = { Text("Are you sure the garbage is collected?") },
 
                     confirmButton = {
-                        TextButton(colors = ButtonDefaults.buttonColors(contentColor = primary_dark),onClick = {
+                        TextButton(onClick = {
                             showDialog.value = false
                             isUpdate.value = true
                             coroutineScope.launch {
@@ -176,7 +173,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDialog.value = false },colors = ButtonDefaults.buttonColors(contentColor = primary_dark)) {
+                        TextButton(onClick = { showDialog.value = false }) {
                             Text("Cancel")
                         }
                     }

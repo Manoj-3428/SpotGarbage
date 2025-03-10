@@ -156,12 +156,9 @@ fun DetailScreen(complaint: Complaint?,navController: NavController) {
                         showDialog.value = true
                     }
                 ) {
-                    if (isDelete.value) {
-                        CircularProgressIndicator(color = Color.White)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "Deleting...")
-                    } else {
-                        Text(text = "Delete this complaint")
+                    Text(text="Delete this complaint")
+                    if(isDelete.value){
+                        navController.navigate("LottieAnimation")
                     }
                 }
 
@@ -173,7 +170,7 @@ fun DetailScreen(complaint: Complaint?,navController: NavController) {
                         title = { Text("Delete Complaint?") },
                         text = { Text("Are you sure you want to delete this complaint? This action cannot be undone.") },
                         confirmButton = {
-                            TextButton(colors = ButtonDefaults.buttonColors(contentColor = primary_dark), onClick = {
+                            TextButton( onClick = {
                                 showDialog.value = false
                                 isDelete.value = true
                                 coroutineScope.launch {
@@ -197,7 +194,7 @@ fun DetailScreen(complaint: Complaint?,navController: NavController) {
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showDialog.value = false },colors = ButtonDefaults.buttonColors(contentColor = primary_dark),) {
+                            TextButton(onClick = { showDialog.value = false }) {
                                 Text("Cancel")
                             }
                         }
