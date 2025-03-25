@@ -106,7 +106,7 @@ fun addComplaint(navController: NavController) {
         imageUri.value=uri
     }
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(top=30.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -144,6 +144,7 @@ fun addComplaint(navController: NavController) {
                     )
             }
         }
+        Spacer(modifier=Modifier.height(10.dp))
         Text(
             text = "Fill complaint details",
             color = secondary,
@@ -152,7 +153,7 @@ fun addComplaint(navController: NavController) {
                 .align(alignment = Alignment.CenterHorizontally),
             fontWeight = FontWeight.Bold
         )
-
+        Spacer(modifier=Modifier.height(10.dp))
         ExposedDropdownMenuBox(
             expanded = expanded.value,
             onExpandedChange = { expanded.value = it },
@@ -292,6 +293,7 @@ fun addComplaint(navController: NavController) {
                 }
             )
         )
+        Spacer(modifier=Modifier.weight(1f))
         val isLoading = remember { mutableStateOf(false) }
         if(isGetting.value==false) {
             Button(
@@ -311,7 +313,9 @@ fun addComplaint(navController: NavController) {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     isLoading.value = false
-                                    navController.navigate("addComplaint")
+                                    navController.navigate("addComplaint"){
+                                        popUpTo(0)
+                                    }
                                     showSomeNotification(context, detectionResult, false)
                                 } else {
                                     saveDataToFirebase(
@@ -328,7 +332,9 @@ fun addComplaint(navController: NavController) {
 
                                     ) {
                                         isLoading.value = false
-                                        navController.navigate("Home")
+                                        navController.navigate("Home"){
+                                            popUpTo(0)
+                                        }
                                         Toast.makeText(
                                             context,
                                             "Detection Result is ${detectionResult}",
@@ -416,7 +422,6 @@ fun getImageUriFromDrawable(context: Context, drawableId: Int): Uri? {
         val bitmap = (drawable as BitmapDrawable).bitmap
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
     }
-
     return FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
 }
 

@@ -1,5 +1,6 @@
 package com.example.spotgarbage.view
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,10 +38,12 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.example.spotgarbage.R
 import com.example.spotgarbage.authentication.logout
 import com.example.spotgarbage.dataclasses.Complaint
+import com.example.spotgarbage.dataclasses.Profiles
 import com.example.spotgarbage.ui.theme.primary_dark
 import com.example.spotgarbage.ui.theme.primary_light
 import com.example.spotgarbage.viewmodel.ComplaintViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -55,7 +58,7 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
 
     val isRefreshing =complaintViewModel.isRefreshing.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-
+    var profileUri: String by remember { mutableStateOf<String>("") }
     var isLoading by remember { mutableStateOf(true) }
     var auth= FirebaseAuth.getInstance()
     val keyboardController= LocalSoftwareKeyboardController.current
@@ -64,11 +67,19 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
         Toast.makeText(context,"You are loged out from your account",Toast.LENGTH_LONG).show()
         navController.navigate("login")
     }
+    val db= FirebaseFirestore.getInstance()
+    val userId=user?.uid
 
     LaunchedEffect(Unit) {
         delay(1000)
         isLoading = false
         complaintViewModel.fetchPosts()
+        db.collection("users").document(userId.toString()).get().addOnSuccessListener { document ->
+            val user = document.toObject(Profiles::class.java)
+            if (user != null) {
+                profileUri=user.uri
+            }
+        }
     }
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
@@ -89,7 +100,6 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-
         gesturesEnabled = true,
         drawerContent = {
             ModalDrawerSheet(modifier = Modifier.width(250.dp).background(primary_dark)) {
@@ -101,12 +111,21 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                         .background(primary_dark),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.avatar),
-                        contentDescription = "Profile image",
+//                    Image(
+//                        painter = painterResource(R.drawable.avatar),
+//                        contentDescription = "Profile image",
+//                        modifier = Modifier
+//                            .size(100.dp)
+//                            .clip(CircleShape)
+//                    )
+                    AsyncImage(
+                        model = if(profileUri!="") profileUri else R.drawable.avatar,
+                        contentDescription = "profileUri",
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
+                            .size(150.dp).clickable{
+                                navController.navigate("profile")
+                            }
+                            .clip(CircleShape), contentScale = ContentScale.Crop
                     )
                 }
                 NavigationDrawerItem(

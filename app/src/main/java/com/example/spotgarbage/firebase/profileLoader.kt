@@ -12,6 +12,7 @@ import com.example.spotgarbage.R
 import com.google.firebase.storage.StorageReference
 //we should change the security rules
 fun profiles(
+    role: String="",
     name: String="",
     email: String="",
     phone: String="",
@@ -33,7 +34,7 @@ fun profiles(
         val storageRef = storage.reference.child("profile_images/$userId.jpg")
         storageRef.putFile(uri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { url ->
-                store(name, email, phone, url.toString(), address, db, auth, context,onComplete)
+                store(role,name, email, phone, url.toString(), address, db, auth, context,onComplete)
             }.addOnFailureListener { e ->
                 Toast.makeText(context, "Failed to get download URL: ${e.message}", Toast.LENGTH_SHORT).show()
                 onComplete()
@@ -43,11 +44,12 @@ fun profiles(
             onComplete()
         }
     } else {
-        store(name, email, phone, "", address, db, auth, context,onComplete)
+        store(role,name, email, phone, "", address, db, auth, context,onComplete)
     }
 }
 
 fun store(
+    role: String,
     name: String,
     email: String,
     phone: String,
@@ -65,7 +67,7 @@ fun store(
     }
 
     val uid = user.uid
-    val profile = Profiles(name, email, phone, uri.toString(), address.toString())
+    val profile = Profiles(role,name, email, phone, uri.toString(), address.toString())
 
     db.collection("users").document(uid).set(profile)
         .addOnSuccessListener {
@@ -77,18 +79,4 @@ fun store(
             onComplete()
         }
 }
-fun storing(context: Context,name: String, email: String, role:String,db: FirebaseFirestore,auth: FirebaseAuth){
-    var user=auth.currentUser
-    if(user==null){
-        Toast.makeText(context, "User is not authenticated", Toast.LENGTH_SHORT).show()
-    }
-    else{
-        val uid=user.uid
-        val imageUri = Uri.parse("android.resource://${context.packageName}/${R.drawable.avatar}")
-        val profile=Profiles(name=name,email=email,role=role, uri = imageUri.toString())
-        db.collection("users").document(uid).set(profile)
-            .addOnSuccessListener {
-                Toast.makeText(context, "Your Profile updated Successfully", Toast.LENGTH_SHORT).show()
-            }
-    }
-}
+

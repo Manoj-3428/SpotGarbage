@@ -1,21 +1,15 @@
 package com.example.spotgarbage.dataclasses
 
+import com.google.firebase.firestore.PropertyName
+
 data class Profiles(
-    var role:String="admin",
-    var name: String = "Unknown user",
-    var email: String = "",
-    var phone: String = "",
-    var uri: String = "",
-    var address: String = "",
+    @PropertyName("role") var role: String = "admin",
+    @PropertyName("name") var name: String = "Unknown user",
+    @PropertyName("email") var email: String = "",
+    @PropertyName("phone") var phone: String = "",
+    @PropertyName("uri") var uri: String = "",
+    @PropertyName("address") var address: String = "",
 ) {
-    constructor() : this("", "", "", "", "")
-
+    constructor() : this("", "", "", "", "", "")
 }
-data class UserProfiles(
-    val role:String,
-    var name: String = "Unknown user",
-    var email: String = "",
-) {
-    constructor() : this("", "", "")
 
-}

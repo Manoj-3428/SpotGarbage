@@ -62,10 +62,7 @@ fun saveDataToFirebase(
     val storageReference = storage.reference.child("complaints_images/$postId.jpg")
 
     Log.d("UploadDebug", "Starting image compression for postId: $postId")
-
-    // Compress the image before uploading
     val compressedImageByteArray = compressImage(uri, context)
-
     if (compressedImageByteArray != null) {
         val uploadTask = storageReference.putBytes(compressedImageByteArray)
 

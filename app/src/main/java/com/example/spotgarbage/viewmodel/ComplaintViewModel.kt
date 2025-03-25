@@ -23,8 +23,7 @@ class ComplaintViewModel : ViewModel() {
     fun fetchComplaints() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            // Fetch complaints from Firebase or API
-            delay(1000) // Simulate network delay
+            delay(1000)
             _isRefreshing.value = false
         }
     }

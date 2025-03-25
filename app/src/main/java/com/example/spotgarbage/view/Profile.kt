@@ -2,6 +2,7 @@ package com.example.spotgarbage.view
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -63,6 +64,7 @@ fun profile(navController: NavController) {
     val email = remember { mutableStateOf("") }
     val phone = remember { mutableStateOf("") }
     val address = remember { mutableStateOf("") }
+    val role = remember { mutableStateOf("") }
     val imageuri = remember { mutableStateOf<Uri?>(null) }
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
@@ -81,11 +83,11 @@ fun profile(navController: NavController) {
         }
     }
 
-    // Retrieve user data using a helper function
     val userId = auth.currentUser?.uid
     if (userId != null) {
         LaunchedEffect(userId) {
-            loadUserData(db, userId, name, email, phone, address, imageuri)
+            loadUserData(db, userId, role, name, email, phone, address, imageuri)
+            Log.d("User uid :",userId)
         }
     }
     if (isLoading.value == true) {
@@ -94,10 +96,10 @@ fun profile(navController: NavController) {
         }
     }
     else {
-    Column(modifier = Modifier.fillMaxSize().background(white).verticalScroll(scrollState), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxSize().background(white).verticalScroll(scrollState).imePadding(), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.fillMaxWidth().height(250.dp).padding(), contentAlignment = Alignment.Center) {
             AsyncImage(
-                model = imageuri.value ?: R.drawable.avatar,
+                model = if (!imageuri.value.toString().isNullOrEmpty()) imageuri.value else R.drawable.avatar,
                 contentDescription = "Profile photo",
                 modifier = Modifier.clip(CircleShape).border(4.dp, primary_dark, CircleShape).
                                     clip(CircleShape).size(150.dp), contentScale = ContentScale.Crop
@@ -115,9 +117,7 @@ fun profile(navController: NavController) {
                 )
             }
         }
-        Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-
-                OutlinedTextField(
+        OutlinedTextField(
                     value = name.value,
                     onValueChange = { name.value = it },
                     label = { Text(text = "Name", color = Color.Gray) },
@@ -128,8 +128,7 @@ fun profile(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    modifier = Modifier.wrapContentSize()
-                        .padding(start = 25.dp, end = 25.dp, top = 10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = colorResource(R.color.secondary_light),
                         unfocusedBorderColor = colorResource(R.color.black),
@@ -150,8 +149,7 @@ fun profile(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    modifier = Modifier.wrapContentSize()
-                        .padding(start = 25.dp, end = 25.dp, top = 10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = colorResource(R.color.secondary_light),
                         unfocusedBorderColor = colorResource(R.color.black),
@@ -172,8 +170,7 @@ fun profile(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    modifier = Modifier.wrapContentSize()
-                        .padding(start = 25.dp, end = 25.dp, top = 10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = colorResource(R.color.secondary_light),
                         unfocusedBorderColor = colorResource(R.color.black),
@@ -194,8 +191,7 @@ fun profile(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                     },
-                    modifier = Modifier.wrapContentSize()
-                        .padding(start = 25.dp, end = 25.dp, top = 10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = colorResource(R.color.secondary_light),
                         unfocusedBorderColor = colorResource(R.color.black),
@@ -205,14 +201,14 @@ fun profile(navController: NavController) {
                         unfocusedLeadingIconColor = colorResource(R.color.black)
                     )
                 )
-
+            Spacer(modifier = Modifier.weight(1f))
             val isUploading = remember { mutableStateOf(false) }
-
             Button(
                 onClick = {
-                    isUploading.value = true  // Start loader
+                    isUploading.value = true
                     coroutineScope.launch {
                         profiles(
+                            role.value,
                             name.value,
                             email.value,
                             phone.value,
@@ -227,7 +223,7 @@ fun profile(navController: NavController) {
                         }
                     }
                 },
-                modifier = Modifier.wrapContentSize().padding(30.dp),
+                modifier = Modifier.wrapContentSize().padding(bottom=50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = secondary_light),
                 shape = RoundedCornerShape(4.dp),
                 enabled = !isUploading.value
@@ -242,11 +238,10 @@ fun profile(navController: NavController) {
         }
         }
     }
-}
-
 suspend fun loadUserData(
     db: FirebaseFirestore,
     userId: String,
+    role: MutableState<String>,
     name: MutableState<String>,
     email: MutableState<String>,
     phone: MutableState<String>,
@@ -256,6 +251,7 @@ suspend fun loadUserData(
     db.collection("users").document(userId).get().addOnSuccessListener { document ->
         val user = document.toObject(Profiles::class.java)
         if (user != null) {
+            role.value=user.role
             name.value = user.name
             email.value = user.email
             phone.value = user.phone

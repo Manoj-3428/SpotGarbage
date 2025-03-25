@@ -15,3 +15,4 @@ interface RoboflowApi {
         @Part image:MultipartBody.Part
     ):Response<DetectionResponse>
 }
+//     waste-segregation-paper-glass-plastic/1 chocolate-detection-41qji/1

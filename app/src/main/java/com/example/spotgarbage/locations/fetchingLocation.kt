@@ -16,7 +16,6 @@ fun fetchLocationsRealtime(onResult: (List<LocationData>) -> Unit) {
                 Log.w("Firestore", "Listen failed.", e)
                 return@addSnapshotListener
             }
-
             if (snapshot != null && !snapshot.isEmpty) {
                 val locations = snapshot.documents.mapNotNull { doc ->
                     val lat = doc.getString("latitude")?.toDoubleOrNull()

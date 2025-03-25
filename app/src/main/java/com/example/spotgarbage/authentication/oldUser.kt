@@ -1,6 +1,9 @@
 package com.example.spotgarbage.authentication
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -9,7 +12,7 @@ import com.example.spotgarbage.dataclasses.Profiles
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-fun loginUser(role: String, email: String, password: String, onComplete: (String) -> Unit) {
+fun loginUser(context: Context, role: String, email: String, password: String, onComplete: (String) -> Unit) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
 
@@ -17,7 +20,7 @@ fun loginUser(role: String, email: String, password: String, onComplete: (String
         if (task.isSuccessful) {
             val userId = auth.currentUser?.uid
             if (userId != null) {
-                checkingUserData(role, db, userId) { check ->
+                checkingUserData(context,role, db, userId) { check ->
                     if (check) {
                         onComplete("success")
                     } else {
@@ -32,8 +35,7 @@ fun loginUser(role: String, email: String, password: String, onComplete: (String
         }
     }
 }
-
-fun checkingUserData(role: String, db: FirebaseFirestore, userId: String, onComplete: (Boolean) -> Unit) {
+fun checkingUserData(context: Context,role: String, db: FirebaseFirestore, userId: String, onComplete: (Boolean) -> Unit) {
     db.collection("users").document(userId).get().addOnSuccessListener { document ->
         val user = document.toObject(Profiles::class.java)
         if (user != null && user.role == role) {
@@ -43,5 +45,7 @@ fun checkingUserData(role: String, db: FirebaseFirestore, userId: String, onComp
         }
     }.addOnFailureListener {
         onComplete(false)
+        Toast.makeText(context, "Exception ${it.message}", Toast.LENGTH_SHORT).show()
+        Log.d("Exception :", it.message.toString())
     }
 }

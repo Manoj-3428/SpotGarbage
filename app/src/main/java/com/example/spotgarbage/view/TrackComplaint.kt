@@ -13,7 +13,11 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,10 +35,12 @@ import coil.compose.AsyncImage
 import com.example.spotgarbage.R
 import com.example.spotgarbage.authentication.logout
 import com.example.spotgarbage.dataclasses.Complaint
+import com.example.spotgarbage.dataclasses.Profiles
 import com.example.spotgarbage.ui.theme.primary_dark
 import com.example.spotgarbage.ui.theme.primary_light
 import com.example.spotgarbage.viewmodel.ComplaintViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
@@ -45,9 +51,17 @@ fun TrackComplaints(navController: NavController, complaintViewModel: ComplaintV
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val complaintList = complaintViewModel.complaintList
+    var profileUri: String by remember { mutableStateOf<String>("") }
     val uid= FirebaseAuth.getInstance().currentUser?.uid
+    val db= FirebaseFirestore.getInstance()
     LaunchedEffect(Unit) {
         complaintViewModel.fetchComplaints()
+        db.collection("users").document(uid.toString()).get().addOnSuccessListener { document ->
+            val user = document.toObject(Profiles::class.java)
+            if (user != null) {
+                profileUri=user.uri
+            }
+        }
     }
         ModalNavigationDrawer(
         drawerState = drawerState,
@@ -61,12 +75,14 @@ fun TrackComplaints(navController: NavController, complaintViewModel: ComplaintV
                         .background(primary_dark),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.avatar),
-                        contentDescription = "Profile image",
+                    AsyncImage(
+                        model = if(profileUri!="") profileUri else R.drawable.avatar,
+                        contentDescription = "profileUri",
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
+                            .size(150.dp).clickable{
+                                navController.navigate("profile")
+                            }
+                            .clip(CircleShape), contentScale = ContentScale.Crop
                     )
                 }
                 NavigationDrawerItem(

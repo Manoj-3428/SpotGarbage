@@ -23,6 +23,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -34,10 +38,12 @@ import coil.compose.AsyncImage
 import com.example.spotgarbage.R
 import com.example.spotgarbage.authentication.logout
 import com.example.spotgarbage.dataclasses.Complaint
+import com.example.spotgarbage.dataclasses.Profiles
 import com.example.spotgarbage.ui.theme.primary_dark
 import com.example.spotgarbage.ui.theme.primary_light
 import com.example.spotgarbage.viewmodel.ComplaintViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -51,7 +57,10 @@ fun adminHome(navController: NavController, complaintViewModel: ComplaintViewMod
     val keyboardController= LocalSoftwareKeyboardController.current
     var isLoading by remember { mutableStateOf(true) }
     var auth= FirebaseAuth.getInstance()
+    var profileUri: String by remember { mutableStateOf<String>("") }
+    val db= FirebaseFirestore.getInstance()
     var user=auth.currentUser
+    val userId=user?.uid
     if(user==null){
         Toast.makeText(context,"You are loged out from your account",Toast.LENGTH_LONG).show()
         navController.navigate("login")
@@ -65,6 +74,12 @@ fun adminHome(navController: NavController, complaintViewModel: ComplaintViewMod
     LaunchedEffect(drawerState.isOpen) {
         if (drawerState.isOpen) {
             keyboardController?.hide()
+            db.collection("users").document(userId.toString()).get().addOnSuccessListener { document ->
+                val user = document.toObject(Profiles::class.java)
+                if (user != null) {
+                    profileUri=user.uri
+                }
+            }
         }
     }
 
@@ -78,7 +93,6 @@ fun adminHome(navController: NavController, complaintViewModel: ComplaintViewMod
             }
         }
     }
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = true,
@@ -91,12 +105,14 @@ fun adminHome(navController: NavController, complaintViewModel: ComplaintViewMod
                         .background(primary_dark),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.avatar),
-                        contentDescription = "Profile image",
+                    AsyncImage(
+                        model = if(profileUri!="") profileUri else R.drawable.avatar,
+                        contentDescription = "profileUri",
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
+                            .size(150.dp).clickable{
+                                navController.navigate("profile")
+                            }
+                            .clip(CircleShape), contentScale = ContentScale.Crop
                     )
                 }
                 NavigationDrawerItem(

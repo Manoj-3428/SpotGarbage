@@ -9,11 +9,11 @@ import com.airbnb.lottie.compose.*
 
 @Composable
 fun LottieAnimation() {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(com.example.spotgarbage.R.raw.loader))
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(com.example.spotgarbage.R.raw.animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
         isPlaying = true,
-        speed = 1f,
+        speed = 5f,
         iterations = LottieConstants.IterateForever
     )
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

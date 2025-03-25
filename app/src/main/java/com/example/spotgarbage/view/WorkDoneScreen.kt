@@ -3,6 +3,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -49,8 +50,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
             Column(
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 30.dp)
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.Center
+                    .verticalScroll(scrollState)
             ) {
                 Box(
                     modifier = Modifier
@@ -65,7 +65,7 @@ fun WorkDoneScreen(complaint: Complaint?,navController: NavController) {
                         modifier = Modifier.fillMaxWidth().size(200.dp)
                     )
                 }
-
+                Spacer(modifier = Modifier.weight(0.5f))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

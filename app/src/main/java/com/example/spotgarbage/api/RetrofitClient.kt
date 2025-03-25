@@ -12,6 +12,5 @@ object RetrofitClient {
             .build()
             .create(RoboflowApi::class.java)
 
-
     }
 }

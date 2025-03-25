@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.spotgarbage.authentication.login
 import com.example.spotgarbage.authentication.signUp
 import com.example.spotgarbage.dataclasses.Complaint
 import com.example.spotgarbage.dataclasses.Profiles
@@ -29,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import com.example.spotgarbage.authentication.login
 import com.example.spotgarbage.onboardingscreens.OnboardingScreen
 import com.example.spotgarbage.sample.LottieAnimation
 import com.example.spotgarbage.ui.MapsScreen
@@ -45,7 +45,6 @@ class MainActivity : ComponentActivity() {
             val complaintViewModel: ComplaintViewModel = viewModel()
             val db = FirebaseFirestore.getInstance()
             val userId = FirebaseAuth.getInstance().currentUser?.uid
-
             var startDestination by remember { mutableStateOf<String?>(null) }
             val context = LocalContext.current
 
@@ -63,8 +62,6 @@ class MainActivity : ComponentActivity() {
                     startDestination = "onBoarding"
                 }
             }
-
-
             if (startDestination != null) {
                 NavHost(navController = navController, startDestination = startDestination!!) {
                     composable("signUp") { signUp(navController) }
@@ -72,7 +69,9 @@ class MainActivity : ComponentActivity() {
                     composable("splash1") { splash1(navController) }
                     composable("splash2") { splash2(navController) }
                     composable("Home") { Home(navController, complaintViewModel) }
-                    composable("profile") { profile(navController) }
+                    composable("profile") {
+                        profile(navController)
+                    }
                     composable("addComplaint") { addComplaint(navController) }
                     composable("DetailScreen") {
                         val complaint = navController.previousBackStackEntry?.savedStateHandle?.get<Complaint>("complaint")
@@ -107,6 +106,4 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-
-
 }

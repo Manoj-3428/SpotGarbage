@@ -2,6 +2,7 @@ package com.example.spotgarbage.view
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,8 +40,8 @@ fun MyDetailScreen(complaint: Complaint?,navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(bottom = 70.dp)
-            ) {
+                    .padding(start = 20.dp, end = 20.dp, top = 30.dp)
+            ){
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -116,7 +117,7 @@ fun MyDetailScreen(complaint: Complaint?,navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(start = 10.dp, end = 10.dp, bottom = 20.dp),
+                    .padding(start = 10.dp, end = 10.dp, bottom = 40.dp),
                 enabled = !isDelete.value,
                 shape = MaterialTheme.shapes.small,
                 colors = ButtonDefaults.buttonColors(
