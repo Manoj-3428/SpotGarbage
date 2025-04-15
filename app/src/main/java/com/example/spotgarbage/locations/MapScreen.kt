@@ -37,7 +37,6 @@ fun MapsScreen() {
             val latLngBounds = bounds.build()
             cameraPositionState.move(CameraUpdateFactory.newLatLngBounds(latLngBounds, 200))
         }
-
     }
 
     if (locationPermission.status.isGranted) {

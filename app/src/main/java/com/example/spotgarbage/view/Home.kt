@@ -1,8 +1,5 @@
 package com.example.spotgarbage.view
-
-import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -250,7 +247,7 @@ fun Home(navController: NavController, complaintViewModel: ComplaintViewModel) {
                     SwipeRefresh(
                         state = rememberSwipeRefreshState(isRefreshing.value),
                         onRefresh = {
-                            complaintViewModel.fetchComplaints() // Refresh the complaints list
+                            complaintViewModel.fetchComplaints()
                         }
                     ) {
                         LazyColumn(

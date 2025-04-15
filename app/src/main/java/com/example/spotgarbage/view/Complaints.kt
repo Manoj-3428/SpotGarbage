@@ -66,7 +66,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-
+import androidx.compose.runtime.*
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("MissingPermission", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -313,7 +313,7 @@ fun addComplaint(navController: NavController) {
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     isLoading.value = false
-                                    navController.navigate("addComplaint"){
+                                    navController.navigate("Home"){
                                         popUpTo(0)
                                     }
                                     showSomeNotification(context, detectionResult, false)
@@ -368,7 +368,7 @@ fun getRealPathFromUri(context: Context, uri: Uri): String {
     val file = File(context.cacheDir, "temp_image.jpg")
     context.contentResolver.openInputStream(uri)?.use { input ->
         file.outputStream().use { output ->
-            input.copyTo(output) // Copies the file
+            input.copyTo(output)
         }
     }
     return file.absolutePath

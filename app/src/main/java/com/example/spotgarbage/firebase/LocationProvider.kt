@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
-
 @SuppressLint("MissingPermission")
 @Composable
 fun Location(context: Context, coroutineScope: CoroutineScope): MutableState<List<String>> {
@@ -24,7 +23,6 @@ fun Location(context: Context, coroutineScope: CoroutineScope): MutableState<Lis
     val final = remember { mutableStateOf<List<String>>(emptyList()) }
 
     val fusedLocation = LocationServices.getFusedLocationProviderClient(context)
-
     fusedLocation.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
         .addOnSuccessListener { loc ->
             if (loc != null) {
@@ -32,7 +30,6 @@ fun Location(context: Context, coroutineScope: CoroutineScope): MutableState<Lis
                 longitude.value = loc.longitude
                 coroutineScope.launch(Dispatchers.IO) {
                     address.value = getAddressFromLocation(latitude.value!!, longitude.value!!, context)
-                    // Update final list after fetching the address
                     final.value = listOf(
                         latitude.value.toString(),
                         longitude.value.toString(),

@@ -120,7 +120,7 @@ fun profile(navController: NavController) {
         OutlinedTextField(
                     value = name.value,
                     onValueChange = { name.value = it },
-                    label = { Text(text = "Name", color = Color.Gray) },
+                    label = { Text(text = "Name ", color = Color.Gray) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person,
